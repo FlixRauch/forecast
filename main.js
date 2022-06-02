@@ -75,5 +75,34 @@ async function loadWeather(url) {
     const response = await fetch(url);
     const jsondata = await response.json();
     
+    marker.setLatLng([
+        jsondata.geometry.coordinates[1],
+        jsondata.geometry.coordinates[0],
+    ])
+
+    let details= jsondata.properties.timeseries[0].data.instant.details;
+
+    let forecastDate = new Date(jsondata.properties.timeseries[0].time)
+    let forecastLabel = formatDate(forecastDate)
+    
+    let popup= `
+        <strong>Wettervorhersage für ${forecastLabel}</strong>
+        <ul>
+        <li>Luftdruck ${details.air_pressure_at_sealevel} (hPa)</li>
+        <li>Lufttemperatur ${details.air_tempreture} (°C)</li>
+        <li>Wolkenbedeckung ${details.cloud_area_fraction} (%)</li>
+        <li>Niederschlag ${details.precipitation_amount} (mm)</li>
+        <li>Luftfeuchte ${details.relative_humidity} (%)</li>
+        </ul>
+    `
+    let symbol = jsondata.properties.timeseries[0].data.next_1_hours.summary.symbol_code
+    popup+= `<img src="icons/${symbol}.svg" alt="${symbol}" style="width:32px">`
+    marker.setPopupContent(popup).openPopup()
+    
 };
 loadWeather("https://api.met.no/weatherapi/locationforecast/2.0/compact?lat=47.267222&lon=11.392778");
+
+map.on("click", function(evt){
+    let url = `https://api.met.no/weatherapi/locationforecast/2.0/compact?lat=${evt.latlng.lat}&lon=${evt.latlng.lng}`
+    loadWeather(url)
+})

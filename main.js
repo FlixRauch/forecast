@@ -35,7 +35,7 @@ let formatDate = function(date) {
         day: "numeric",
         hour: "2-digit",
         minute: "2-digit"
-    }) + " Uhr"
+    }) + " Uhr";
 }
 
 // Windvorhersage
@@ -46,11 +46,26 @@ async function loadWind(url) {
     let forecastDate = new Date(jsondata[0].header.refTime)
     forecastDate.setHours(forecastDate.getHours + jsondata[0].header.forecastTime)
     let forecastLabel = formatDate(forecastDate)
+
+    layerControl.addOverlay(overlays.wind, `ECMWF Windvorhersage für ${forecastLabel}`)
+    L.velocityLayer({
+        data: jsondata,
+        lineWidth:2,
+        displayOptions: {
+            velocityType: "",
+            directionString: "Windrichtung",
+            speedString: "Windgeschwindigkeit",
+            speedUnit: "k/h",
+            emptyString: "keine Daten vorhanden",
+            position: "bottomright"
+        }
+    }).addTo(overlays.wind)
 };
 loadWind("https://geographie.uibk.ac.at/webmapping/ecmwf/data/wind-10u-10v-europe.json");
 
 // Wettervorhersage
 async function loadWeather(url) {
-
+    const response = await fetch(url);
+    const jsondata = await response.json();
 };
 loadWeather("https://api.met.no/weatherapi/locationforecast/2.0/compact?lat=47.267222&lon=11.392778");
